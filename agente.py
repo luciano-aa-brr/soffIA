@@ -9,8 +9,13 @@ def limpiar():
 def pausa():
     time.sleep(2)
 
+import os
+
 # Configuracion api
-api_key = "TU_CLAVE_FUE_REMOVIDA"
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    print("Error: GEMINI_API_KEY environment variable not set")
+    exit(1)
 genai.configure(api_key=api_key)
 modelo = genai.GenerativeModel("models/gemini-flash-latest")
 

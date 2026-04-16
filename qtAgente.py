@@ -10,8 +10,13 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QFont, QPalette, QColor
 from langchain.memory import ConversationBufferMemory
 
+import os
+
 # Configurar API
-api_key = "TU_CLAVE_FUE_REMOVIDA"
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    print("Error: GEMINI_API_KEY environment variable not set")
+    exit(1)
 genai.configure(api_key=api_key)
 modelo = genai.GenerativeModel("models/gemini-flash-latest")
 
