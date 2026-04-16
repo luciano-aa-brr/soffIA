@@ -1,12 +1,9 @@
 # Luciano Aliaga Analista programador 2025
 import sys
 import os
-import pyttsx3
-import time
-import speech_recognition as sr
 import google.generativeai as genai
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QLineEdit, QPushButton, QLabel
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QPalette, QColor
 from langchain.memory import ConversationBufferMemory
 
@@ -20,39 +17,10 @@ if not api_key:
 genai.configure(api_key=api_key)
 modelo = genai.GenerativeModel("models/gemini-flash-latest")
 
-class TTSWorker(QThread):
-    finished = pyqtSignal()
-
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
-        self.engine = None
-        self._stop_requested = False
-
-    def run(self):
-        self.engine = pyttsx3.init()
-        self.engine.setProperty('rate', 150)
-        self.engine.setProperty('volume', 1)
-        self.engine.say(self.text)
-        try:
-            self.engine.runAndWait()
-        except RuntimeError:
-            pass
-        self.finished.emit()
-
-    def stop(self):
-        self._stop_requested = True
-        if self.engine is not None:
-            try:
-                self.engine.stop()
-            except Exception:
-                pass
-
 class SoffIAWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.memoria = ConversationBufferMemory()
-        self.tts_worker = None
         self.initUI()
 
     def initUI(self):
@@ -103,22 +71,14 @@ class SoffIAWindow(QWidget):
 
         self.setLayout(layout)
 
-    def set_busy(self, busy: bool):
-        self.inputField.setEnabled(not busy)
-        self.sendButton.setEnabled(not busy)
-        self.statusLabel.setText("SoffIA está hablando..." if busy else "")
-
     def procesarPregunta(self):
-        if self.tts_worker is not None and self.tts_worker.isRunning():
-            self.chatArea.append("SoffIA: Espera un momento, aún estoy hablando...\n")
-            return
-
         inputUsuario = self.inputField.text().strip()
         if not inputUsuario:
             return
 
-        self.chatArea.append(f"Tú: {inputUsuario}")
+        self.chatArea.append(f"Tú: {inputUsuario}\n")
         self.inputField.clear()
+        self.statusLabel.setText("SoffIA está pensando...")
 
         context = self.memoria.load_memory_variables({}).get("history", "")
         prompt = f"Historial de conversación:\n{context}\n\nUsuario: {inputUsuario}\nAgente:"
@@ -130,35 +90,15 @@ class SoffIAWindow(QWidget):
 
             self.chatArea.append(f"SoffIA: {respuesta_text}\n")
             self.chatArea.verticalScrollBar().setValue(self.chatArea.verticalScrollBar().maximum())
-
-            self.tts_worker = TTSWorker(respuesta_text)
-            self.tts_worker.finished.connect(self.on_tts_finished)
-            self.tts_worker.start()
-            self.set_busy(True)
+            self.statusLabel.setText("")
         except Exception as e:
             error_msg = f"Error: {str(e)}"
             self.chatArea.append(f"{error_msg}\n")
+            self.statusLabel.setText("")
             print(error_msg)  # Para depurar en consola
 
-    def on_tts_finished(self):
-        self.set_busy(False)
-        self.tts_worker = None
-
-    def closeEvent(self, event):
-        if self.tts_worker is not None and self.tts_worker.isRunning():
-            self.tts_worker.stop()
-            self.tts_worker.wait(500)
-        event.accept()
-
     def salir(self):
-        if self.tts_worker is not None and self.tts_worker.isRunning():
-            self.tts_worker.stop()
-            self.tts_worker.wait(500)
-
-        self.set_busy(True)
-        farewell_worker = TTSWorker("Gracias por usar SoffIA. ¡Hasta luego!")
-        farewell_worker.finished.connect(QApplication.quit)
-        farewell_worker.start()
+        QApplication.quit()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -4,12 +4,11 @@ SoffIA es un asistente virtual basado en IA que utiliza Google Gemini para propo
 
 ## Características
 
-- **Interfaz Moderna (qtAgente.py)**: Interfaz gráfica moderna con PyQt5, narración de voz y manejo de errores.
+- **Interfaz Moderna (qtAgente.py)**: Interfaz gráfica moderna con PyQt5 para chat de texto.
 - **Versión de Consola (agente.py)**: Versión de línea de comandos para uso básico.
 - **Interfaz Antigua (tkAgente.py)**: Versión original con Tkinter.
 - **Memoria Conversacional**: Mantiene el contexto de la conversación usando LangChain.
-- **Narración de Voz**: Utiliza pyttsx3 para narrar las respuestas.
-- **Reconocimiento de Voz**: Soporte para entrada de voz (speech_recognition).
+- **Modo Offline**: Funciona sin conexión a internet para respuestas basadas en conocimiento general.
 
 ## Requisitos
 
@@ -17,8 +16,6 @@ SoffIA es un asistente virtual basado en IA que utiliza Google Gemini para propo
 - PyQt5
 - google-generativeai
 - langchain
-- pyttsx3
-- speech_recognition
 
 ## Instalación
 
@@ -36,7 +33,7 @@ python -m venv .venv
 
 3. Instala las dependencias:
 ```bash
-pip install PyQt5 google-generativeai langchain pyttsx3 speech_recognition
+pip install PyQt5 google-generativeai langchain
 ```
 
 4. Configura tu clave API de Google Gemini:
